@@ -1,0 +1,16 @@
+{
+  "presets": [
+    "next/babel"
+  ],
+  "plugins": [
+    "relay",
+    "transform-flow-strip-types"
+  ],
+  "env": {
+    "test": {
+      "presets": [
+        ["next/babel", { "preset-env": { "modules": "commonjs" } }]
+      ]
+    }
+  }
+}

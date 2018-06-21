@@ -1,0 +1,32 @@
+{
+  "name": "teaching",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.js",
+  "workspaces": [
+    "pages/*"
+  ],
+  "dependencies": {
+    "next": "^5.1.0",
+    "react": "^16.4.1",
+    "react-dom": "^16.4.1"
+  },
+  "scripts": {
+    "build": "next build",
+    "dev": "next",
+    "flow": "flow --include-warnings",
+    "prettier": "prettier --write \"{pages,__{tests,mocks}__}/**/*.js\" --single-quote",
+    "relay": "relay-compiler --src ./pages --schema ./pages/relay/schema.graphql",
+    "start": "next start",
+    "test": "NODE_ENV=test jest --env=jsdom --setupFiles ./jest.setup.js",
+    "test-ci": "yarn relay --validate && yarn test"
+  },
+  "devDependencies": {
+    "babel-plugin-transform-flow-strip-types": "^6.22.0",
+    "enzyme": "^3.3.0",
+    "enzyme-adapter-react-16": "^1.1.1",
+    "flow-bin": "^0.75.0",
+    "jest": "^23.2.0",
+    "prettier": "^1.13.6"
+  }
+}

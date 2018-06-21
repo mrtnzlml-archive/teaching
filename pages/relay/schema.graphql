@@ -1,0 +1,2039 @@
+schema {
+  query: RootQuery
+  mutation: RootMutation
+}
+
+type AdditionalBaggage {
+  price: Price
+
+  """Number of baggage."""
+  quantity: Int
+}
+
+type Address {
+  """Contains street and number."""
+  street: String
+  city: String
+  zip: String
+}
+
+type Airline {
+  name: String
+
+  """2-letter IATA code of airline."""
+  code: String
+  logoUrl: String
+
+  """Airline is low cost carrier."""
+  isLowCost: Boolean
+}
+
+type AirportArrivalTimelineEvent implements TimelineEvent {
+  """Time of appearance in the timeline."""
+  timestamp: DateTime
+
+  """Location of departure"""
+  location: RouteStop
+}
+
+enum AllBookingsOnlyEnum {
+  FUTURE
+  PAST
+}
+
+type AllowedBaggage {
+  """Extra and overweight baggage."""
+  additionalBaggage: [AdditionalBaggage]
+
+  """Small carry-on luggage."""
+  cabin: [Baggage]
+
+  """Baggage checked online."""
+  checked: [Baggage]
+}
+
+input AreaInput {
+  """Top left coordinates of the area."""
+  topLeft: CoordinatesInput!
+
+  """Bottom right coordinates of the area."""
+  bottomRight: CoordinatesInput!
+}
+
+type ArrivalTimelineEvent implements TimelineEvent {
+  """Time of appearance in the timeline."""
+  timestamp: DateTime
+
+  """Location of arrival"""
+  location: RouteStop
+}
+
+input AvailableHotelOptionsInput {
+  """Three-letters ISO 4217 currency code, e.g. EUR or USD"""
+  currency: Currency
+}
+
+input AvailableHotelSearchInput {
+  """Opaque hotel ID."""
+  hotelId: ID!
+  checkin: Date!
+  checkout: Date!
+  roomsConfiguration: [RoomsConfiguration!]!
+  language: Language
+}
+
+type Baggage {
+  height: Int
+  length: Int
+  width: Int
+  weight: Int
+  note: String
+}
+
+type BoardingTimelineEvent implements TimelineEvent {
+  """Time of appearance in the timeline."""
+  timestamp: DateTime
+
+  """Gate at which boarding is done"""
+  gate: String
+}
+
+type BookedFlightTimelineEvent implements TimelineEvent {
+  """Time of appearance in the timeline."""
+  timestamp: DateTime
+}
+
+type BookedService {
+  """Type of booked service"""
+  category: BookedServiceCategory
+
+  """Status of booked service"""
+  status: BookedServiceStatus
+}
+
+enum BookedServiceCategory {
+  ALLOCATED_SEATING
+  SPECIAL_ASSISTANCE
+  SPORTS_EQUIPMENT
+  TRAVELLING_WITH_PETS
+  MUSICAL_EQUIPMENT
+  MEALS_ON_BOARD
+  BAGS
+  EXTRAS_BAGS
+  EXTRAS_OTHER
+  EXTRAS_CHANGE_FLIGHT
+  EXTRAS_PASSENGER_DETAILS_CHANGE
+  UPDATE_INSURANCES
+  PRICE_CHANGE
+  FLIGHTS
+}
+
+enum BookedServiceStatus {
+  CONFIRMED
+  CLOSED
+  PENDING
+  OPEN
+}
+
+"""
+You can fetch here almost every information related to the booking itself.
+However when you want to fetch legs you have to use "oneWay", "return" and
+"multicity" fields because they highly depend on the booking type.
+"""
+type Booking {
+  arrival: RouteStop @deprecated(reason: "Use \"oneWay\", \"return\" & \"multicity\"  fields to retrieve booking info.")
+  departure: RouteStop @deprecated(reason: "Use \"oneWay\", \"return\" & \"multicity\"  fields to retrieve booking info.")
+
+  """Flight segments, e.g. stopover, change of aircraft, etc."""
+  legs: [Leg] @deprecated(reason: "Use \"oneWay\", \"return\" & \"multicity\"  fields to retrieve booking info.")
+
+  """The ID of an object"""
+  id: ID!
+
+  """Unique number identifying the booking in communication with support."""
+  databaseId: Int
+  type: BookingType @deprecated(reason: "Manual type is not necessary. Use \"__typename\" instead.")
+  status: BookingStatus
+
+  """Total price of the whole booking."""
+  price: Price
+
+  """Date of the booking creation"""
+  bookingDate: Date
+  allowedBaggage: AllowedBaggage
+
+  """Static assets related to this booking."""
+  assets: BookingAssets
+  passengers: [Passenger]
+  passengerCount: Int
+  destinationImageUrl(dimensions: BookingDestinationImageDimensions = _600x600): String
+
+  """List of carriers involved in the booking."""
+  carriers: [Carrier]
+
+  """
+  You can use this link to access one particular booking directly WITHOUT PASSWORD. Use it carefully.
+  """
+  directAccessURL(deeplinkTo: DirectAccessURLValues): String
+  bookedServices: [BookedService]
+  contactDetails: BookingContactDetails
+  isPastBooking: Boolean
+
+  """All services provided directly by Kiwi.com."""
+  availableServices: Services
+
+  """All services provided via whitelabels."""
+  availableWhitelabeledServices: WhitelabeledServices
+  oneWay: BookingOneWay
+  return: BookingReturn
+  multicity: BookingMulticity
+}
+
+type BookingAssets {
+  """
+  URL of the electronic ticket. Ticket may not be available yet (returns null).
+  """
+  ticketUrl: String
+
+  """URL of the invoice."""
+  invoiceUrl: String
+}
+
+type BookingConfirmedTimelineEvent implements TimelineEvent {
+  """Time of appearance in the timeline."""
+  timestamp: DateTime
+}
+
+"""A connection to a list of items."""
+type BookingConnection {
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """A list of edges."""
+  edges: [BookingEdge]
+}
+
+"""Contact details related to the booking"""
+type BookingContactDetails {
+  phone: String
+  email: String
+}
+
+enum BookingDestinationImageDimensions {
+  _1200x628
+  _1280x720
+  _220x165
+  _275x250
+  _300x165
+  _375x165
+  _600x330
+  _600x600
+  _610x251
+}
+
+"""An edge in a connection."""
+type BookingEdge {
+  """The item at the end of the edge"""
+  node: Booking
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+interface BookingInterface {
+  """The ID of an object"""
+  id: ID!
+
+  """Unique number identifying the booking in communication with support."""
+  databaseId: Int
+  type: BookingType @deprecated(reason: "Manual type is not necessary. Use \"__typename\" instead.")
+  status: BookingStatus
+
+  """Total price of the whole booking."""
+  price: Price
+
+  """Date of the booking creation"""
+  bookingDate: Date
+  allowedBaggage: AllowedBaggage
+
+  """Static assets related to this booking."""
+  assets: BookingAssets
+  passengers: [Passenger]
+  passengerCount: Int
+  destinationImageUrl(dimensions: BookingDestinationImageDimensions = _600x600): String
+
+  """List of carriers involved in the booking."""
+  carriers: [Carrier]
+
+  """
+  You can use this link to access one particular booking directly WITHOUT PASSWORD. Use it carefully.
+  """
+  directAccessURL(deeplinkTo: DirectAccessURLValues): String
+  bookedServices: [BookedService]
+  contactDetails: BookingContactDetails
+  isPastBooking: Boolean
+
+  """All services provided directly by Kiwi.com."""
+  availableServices: Services
+
+  """All services provided via whitelabels."""
+  availableWhitelabeledServices: WhitelabeledServices
+}
+
+"""A connection to a list of items."""
+type BookingInterfaceConnection {
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """A list of edges."""
+  edges: [BookingInterfaceEdge]
+}
+
+"""An edge in a connection."""
+type BookingInterfaceEdge {
+  """The item at the end of the edge"""
+  node: BookingInterface
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type BookingMulticity implements BookingInterface & Node {
+  """The ID of an object"""
+  id: ID!
+
+  """Unique number identifying the booking in communication with support."""
+  databaseId: Int
+  type: BookingType @deprecated(reason: "Manual type is not necessary. Use \"__typename\" instead.")
+  status: BookingStatus
+
+  """Total price of the whole booking."""
+  price: Price
+
+  """Date of the booking creation"""
+  bookingDate: Date
+  allowedBaggage: AllowedBaggage
+
+  """Static assets related to this booking."""
+  assets: BookingAssets
+  passengers: [Passenger]
+  passengerCount: Int
+  destinationImageUrl(dimensions: BookingDestinationImageDimensions = _600x600): String
+
+  """List of carriers involved in the booking."""
+  carriers: [Carrier]
+
+  """
+  You can use this link to access one particular booking directly WITHOUT PASSWORD. Use it carefully.
+  """
+  directAccessURL(deeplinkTo: DirectAccessURLValues): String
+  bookedServices: [BookedService]
+  contactDetails: BookingContactDetails
+  isPastBooking: Boolean
+
+  """All services provided directly by Kiwi.com."""
+  availableServices: Services
+
+  """All services provided via whitelabels."""
+  availableWhitelabeledServices: WhitelabeledServices
+
+  """Initial origin."""
+  start: RouteStop
+
+  """Final destination."""
+  end: RouteStop
+
+  """List of trips in each multicity segment."""
+  trips: [Trip]
+}
+
+"""
+Booking with simple trip from origin to destination, with possible stopovers.
+"""
+type BookingOneWay implements BookingInterface & Node {
+  """The ID of an object"""
+  id: ID!
+
+  """Unique number identifying the booking in communication with support."""
+  databaseId: Int
+  type: BookingType @deprecated(reason: "Manual type is not necessary. Use \"__typename\" instead.")
+  status: BookingStatus
+
+  """Total price of the whole booking."""
+  price: Price
+
+  """Date of the booking creation"""
+  bookingDate: Date
+  allowedBaggage: AllowedBaggage
+
+  """Static assets related to this booking."""
+  assets: BookingAssets
+  passengers: [Passenger]
+  passengerCount: Int
+  destinationImageUrl(dimensions: BookingDestinationImageDimensions = _600x600): String
+
+  """List of carriers involved in the booking."""
+  carriers: [Carrier]
+
+  """
+  You can use this link to access one particular booking directly WITHOUT PASSWORD. Use it carefully.
+  """
+  directAccessURL(deeplinkTo: DirectAccessURLValues): String
+  bookedServices: [BookedService]
+  contactDetails: BookingContactDetails
+  isPastBooking: Boolean
+
+  """All services provided directly by Kiwi.com."""
+  availableServices: Services
+
+  """All services provided via whitelabels."""
+  availableWhitelabeledServices: WhitelabeledServices
+  trip: Trip
+}
+
+"""Booking with return trip. A <-> B"""
+type BookingReturn implements BookingInterface & Node {
+  """The ID of an object"""
+  id: ID!
+
+  """Unique number identifying the booking in communication with support."""
+  databaseId: Int
+  type: BookingType @deprecated(reason: "Manual type is not necessary. Use \"__typename\" instead.")
+  status: BookingStatus
+
+  """Total price of the whole booking."""
+  price: Price
+
+  """Date of the booking creation"""
+  bookingDate: Date
+  allowedBaggage: AllowedBaggage
+
+  """Static assets related to this booking."""
+  assets: BookingAssets
+  passengers: [Passenger]
+  passengerCount: Int
+  destinationImageUrl(dimensions: BookingDestinationImageDimensions = _600x600): String
+
+  """List of carriers involved in the booking."""
+  carriers: [Carrier]
+
+  """
+  You can use this link to access one particular booking directly WITHOUT PASSWORD. Use it carefully.
+  """
+  directAccessURL(deeplinkTo: DirectAccessURLValues): String
+  bookedServices: [BookedService]
+  contactDetails: BookingContactDetails
+  isPastBooking: Boolean
+
+  """All services provided directly by Kiwi.com."""
+  availableServices: Services
+
+  """All services provided via whitelabels."""
+  availableWhitelabeledServices: WhitelabeledServices
+
+  """Trip from origin to destination."""
+  outbound: Trip
+
+  """Return trip back from destination to origin."""
+  inbound: Trip
+}
+
+enum BookingStatus {
+  NEW
+  REFUNDED
+  PENDING
+  CONFIRMED
+  CANCELLED
+  DELETED
+  CLOSED
+  EXPIRED
+}
+
+type BookingTimeline {
+  """List of events of the Bookingtimeline"""
+  events: [TimelineEvent]
+}
+
+enum BookingType {
+  ONE_WAY
+  RETURN
+  MULTICITY
+}
+
+type CarRentalService {
+  relevantCities: [CarRentalServiceRelevantCities]
+}
+
+type CarRentalServiceRelevantCities {
+  whitelabelURL: String
+  location: Location
+}
+
+type Carrier {
+  """The ID of an object"""
+  id: ID!
+  name: String
+
+  """Unique code of the carrier, IATA code for airlines."""
+  code: String
+
+  """Indicates whether it is low cost carrier."""
+  isLowCost: Boolean
+}
+
+type Coordinates {
+  """Latitude."""
+  lat: Float
+
+  """Longitude."""
+  lng: Float
+}
+
+input CoordinatesInput {
+  """Latitude."""
+  lat: Float!
+
+  """Longitude."""
+  lng: Float!
+}
+
+enum CoveredBy {
+  KIWICOM
+  CARRIER
+}
+
+enum Currency {
+  DZD
+  NAD
+  GHS
+  EGP
+  BGN
+  PAB
+  BOB
+  DKK
+  BWP
+  LBP
+  TZS
+  VND
+  AOA
+  KHR
+  MYR
+  SOS
+  KYD
+  LYD
+  UAH
+  JOD
+  AZN
+  AWG
+  SAR
+  XAG
+  HKD
+  CHF
+  GIP
+  BYR
+  SVC
+  XPD
+  BYN
+  MRO
+  HRK
+  DJF
+  THB
+  XAF
+  BND
+  ETB
+  UYU
+  NIO
+  LAK
+  SYP
+  MAD
+  MZN
+  YER
+  ZAR
+  NPR
+  ZWL
+  NGN
+  CRC
+  AED
+  GBP
+  MWK
+  LKR
+  PKR
+  HUF
+  SZL
+  LSL
+  MNT
+  AMD
+  UGX
+  XDR
+  JMD
+  TTD
+  SHP
+  AFN
+  MMK
+  KPW
+  TRY
+  BDT
+  HTG
+  SLL
+  MGA
+  PHP
+  LRD
+  XCD
+  NOK
+  MOP
+  INR
+  MXN
+  CZK
+  TJS
+  BTC
+  BTN
+  COP
+  TMT
+  MUR
+  IDR
+  GEL
+  XPF
+  FJD
+  VUV
+  PEN
+  BZD
+  ILS
+  DOP
+  GGP
+  MDL
+  XPT
+  QAR
+  SEK
+  ZMK
+  MVR
+  AUD
+  SRD
+  CUP
+  CLF
+  BBD
+  KMF
+  KRW
+  GMD
+  VEF
+  GTQ
+  ANG
+  CUC
+  CLP
+  ZMW
+  EUR
+  ALL
+  RWF
+  KZT
+  RUB
+  ISK
+  CDF
+  RON
+  OMR
+  BRL
+  SBD
+  PLN
+  PYG
+  KES
+  QUN
+  MKD
+  EEK
+  TWD
+  TOP
+  JEP
+  GNF
+  WST
+  IQD
+  ERN
+  BAM
+  SCR
+  CAD
+  CVE
+  KWD
+  BIF
+  PGK
+  LTL
+  HNL
+  SGD
+  UZS
+  STD
+  IRR
+  CNY
+  XOF
+  TND
+  GYD
+  MTL
+  NZD
+  FKP
+  LVL
+  USD
+  BSD
+  KGS
+  ARS
+  BMD
+  IMP
+  RSD
+  BHD
+  JPY
+  SDG
+  XAU
+}
+
+type CurrencyDetail implements Node {
+  """The ID of an object"""
+  id: ID!
+
+  """The code of the currency as used on Kiwi.com frontend"""
+  code: String
+
+  """The name of the currency"""
+  name: String
+
+  """Format string of the currency"""
+  format: String
+
+  """Whether the format of the currency is universally accepted"""
+  uncertainFormat: Boolean
+
+  """Number of digits to round the currency to when doing conversion"""
+  round: Int
+
+  """List of affiliate IDs to enable the currency on"""
+  enabledOnAffilId: [String]
+
+  """The code of the currency used as a fallback"""
+  fallback: String
+
+  """Currency rate compared to Euro"""
+  rate: Float
+}
+
+"""A connection to a list of items."""
+type CurrencyDetailConnection {
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """A list of edges."""
+  edges: [CurrencyDetailEdge]
+}
+
+"""An edge in a connection."""
+type CurrencyDetailEdge {
+  """The item at the end of the edge"""
+  node: CurrencyDetail
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+enum CustomerBookingsOnlyEnum {
+  FUTURE
+  PAST
+}
+
+"""
+A date string, such as 2007-12-03, compliant with the `full-date` format
+outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for
+representation of dates and times using the Gregorian calendar.
+"""
+scalar Date
+
+"""You always have to setup exact date OR range from-to."""
+input DateInput {
+  """Exact date (cannot be used in combination with from-to fields)."""
+  exact: Date
+
+  """
+  Start of the date range (cannot be used in combination with exact date).
+  """
+  from: Date
+
+  """
+  End of the date range (cannot be used in combination with exact date).
+  """
+  to: Date
+}
+
+"""
+A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the
+`date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO
+8601 standard for representation of dates and times using the Gregorian calendar.
+"""
+scalar DateTime
+
+type DepartureTimelineEvent implements TimelineEvent {
+  """Time of appearance in the timeline."""
+  timestamp: DateTime
+
+  """Location of departure"""
+  location: RouteStop
+}
+
+enum DirectAccessURLValues {
+  CHANGE_TRIP
+  INSURANCE
+  SEATING
+  PETS
+  ASSISTANCE
+  SPORT_EQUIPMENT
+  MUSICAL_EQUIPMENT
+  HOTELS
+  CAR_RENTS
+  REFUND
+  BAGS
+  EDIT_PASSENGERS
+  CANCEL
+  PENDING_SERVICES
+  VALIDATE_PAYMENT
+  TRAVEL_DOCUMENTS
+  PAYMENT
+}
+
+type DownloadBoardingPassTimelineEvent implements TimelineEvent {
+  """Time of appearance in the timeline."""
+  timestamp: DateTime
+}
+
+type DownloadETicketTimelineEvent implements TimelineEvent {
+  """Time of appearance in the timeline."""
+  timestamp: DateTime
+
+  """URL of the eTicket"""
+  ticketUrl: String
+}
+
+type DownloadReceiptTimelineEvent implements TimelineEvent {
+  """Time of appearance in the timeline."""
+  timestamp: DateTime
+
+  """URL of the receipt/invoice"""
+  receiptUrl: String
+}
+
+input DurationInput {
+  stopovers: StopoversInput
+  maxFlightDuration: Int
+}
+
+"""Combination of flight and hotel"""
+type DynamicPackage {
+  """The ID of an object"""
+  id: ID!
+
+  """Accommodation part of the package"""
+  hotel: Hotel
+
+  """Transport part of the package"""
+  flight: Flight
+
+  """
+  URL to the whitelabel page where this dynamic package can be purchased
+  """
+  whitelabelUrl: String
+
+  """Total price"""
+  price: Price
+}
+
+"""A connection to a list of items."""
+type DynamicPackageConnection {
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """A list of edges."""
+  edges: [DynamicPackageEdge]
+}
+
+"""An edge in a connection."""
+type DynamicPackageEdge {
+  """The item at the end of the edge"""
+  node: DynamicPackage
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+input DynamicPackagesSimpleSearchInput {
+  """Valid airport code according the IATA standard"""
+  fromAirport: String!
+
+  """Valid airport code according the IATA standard"""
+  toAirport: String!
+
+  """List of outbound flight numbers (e.g. OK123)"""
+  outboundFlights: [String!]!
+
+  """List of inbound flight numbers (e.g. OK123)"""
+  inboundFlights: [String!]!
+
+  """Departure date"""
+  date: Date!
+
+  """Return date"""
+  returnDate: Date!
+  passengers: PassengersInput!
+}
+
+type FAQArticle {
+  """The ID of an object"""
+  id: ID!
+
+  """Title of the article"""
+  title: String
+
+  """Perex of the article"""
+  perex: String
+
+  """Content of the article"""
+  content: String
+
+  """Upvotes about the utility of the article"""
+  upvotes: Int
+
+  """Downvotes about the utility of the article"""
+  downvotes: Int
+}
+
+"""A connection to a list of items."""
+type FAQArticleConnection {
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """A list of edges."""
+  edges: [FAQArticleEdge]
+}
+
+"""An edge in a connection."""
+type FAQArticleEdge {
+  """The item at the end of the edge"""
+  node: FAQArticle
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type FAQCategory {
+  """The ID of an object"""
+  id: ID!
+
+  """Title of the FAQ category"""
+  title: String
+
+  """Perex of the FAQ category"""
+  perex: String
+
+  """List of subcategories"""
+  subcategories: [FAQCategory]
+
+  """List of ancestor categories in the tree from the root."""
+  ancestors: [FAQCategory]
+
+  """List of FAQ articles"""
+  FAQs: [FAQArticle]
+}
+
+"""A connection to a list of items."""
+type FAQCategoryConnection {
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """A list of edges."""
+  edges: [FAQCategoryEdge]
+}
+
+"""An edge in a connection."""
+type FAQCategoryEdge {
+  """The item at the end of the edge"""
+  node: FAQCategory
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+enum FAQCommentType {
+  CONFUSING
+  DOESNT_ANSWER
+  DONT_LIKE
+  NOT_ACCURATE
+  OTHER
+}
+
+type Flight {
+  """The ID of an object"""
+  id: ID!
+
+  """List of all Airlines involved."""
+  airlines: [Airline]
+  departure: RouteStop
+  arrival: RouteStop
+
+  """Flight duration in minutes."""
+  duration: Int
+
+  """Flight segments, e.g. stopover, change of aircraft, etc."""
+  legs: [Leg]
+
+  """Total flight price."""
+  price: Price
+
+  """URL to the Kiwi.com for booking the flight."""
+  bookingUrl: String
+}
+
+"""A connection to a list of items."""
+type FlightConnection {
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """A list of edges."""
+  edges: [FlightEdge]
+}
+
+"""An edge in a connection."""
+type FlightEdge {
+  """The item at the end of the edge"""
+  node: Flight
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+input FlightsFiltersInput {
+  maxStopovers: Int
+  duration: DurationInput
+}
+
+input FlightsOptionsInput {
+  """An ISO-4217 currency code."""
+  currency: Currency
+  locale: Locale
+}
+
+input FlightsSearchInput {
+  """From where you want to fly?"""
+  from: [LocationInput!]!
+
+  """To where you want to fly?"""
+  to: [LocationInput!]!
+
+  """When do you want to leave?"""
+  date: DateInput!
+
+  """When do you want to return?"""
+  returnDate: DateInput
+  passengers: PassengersInput
+}
+
+type GeoIP {
+  """ISO country code"""
+  isoCountryCode: String
+
+  """Coordinates"""
+  coordinates: Coordinates
+}
+
+"""General information about the hotel."""
+type Hotel {
+  """The ID of an object"""
+  id: ID!
+
+  """
+  Original (low level ID of the hotel). You are probably looking for "id" field.
+  """
+  originalId: String @deprecated(reason: "Use field \"id\" instead. This field is used only because of compatibility reasons with old APIs.")
+
+  """Name of the hotel."""
+  name: String
+  cityName: String
+
+  """URL to our whitelabel page of this hotel."""
+  whitelabelUrl: String
+
+  """Main description (summary) of the hotel."""
+  summary: String
+
+  """Main photo of the hotel."""
+  mainPhoto: HotelPhoto
+
+  """Location of the hotel."""
+  coordinates: Coordinates
+  address: Address
+
+  """The star rating of the hotel."""
+  rating: HotelRating
+
+  """Hotel review from hotel visitors."""
+  review: HotelReview
+
+  """All facilities available in the hotel."""
+  facilities(after: String, first: Int, before: String, last: Int): HotelFacilityConnection
+
+  """All rooms available in the hotel."""
+  rooms(after: String, first: Int, before: String, last: Int): HotelRoomConnection
+
+  """All available photos of the hotel."""
+  photos(after: String, first: Int, before: String, last: Int): HotelPhotoConnection
+
+  """Hotel distance from the center in Km."""
+  distanceFromCenter: Float
+}
+
+"""Information about hotel availability during selected time period."""
+type HotelAvailability {
+  """The ID of an object"""
+  id: ID!
+
+  """
+  Total price for all guests and nights and in the hotel. (including VAT)
+  """
+  price: Price
+  availableRooms: [HotelRoomAvailability]
+  hotel: Hotel
+}
+
+"""A connection to a list of items."""
+type HotelAvailabilityConnection {
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """A list of edges."""
+  edges: [HotelAvailabilityEdge]
+  stats: HotelAvailabilityStats
+
+  """Name of the closest city"""
+  cityName: String
+}
+
+"""An edge in a connection."""
+type HotelAvailabilityEdge {
+  """The item at the end of the edge"""
+  node: HotelAvailability
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+"""
+Overall statistics related to all hotels matching search & filter criteria
+"""
+type HotelAvailabilityStats {
+  priceMax: Float
+  priceMin: Float
+}
+
+type HotelCity {
+  """The ID of an object"""
+  id: ID!
+
+  """Name of the hotel."""
+  name: String
+  location: Coordinates
+  numberOfHotels: Int
+}
+
+"""A connection to a list of items."""
+type HotelCityConnection {
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """A list of edges."""
+  edges: [HotelCityEdge]
+}
+
+"""An edge in a connection."""
+type HotelCityEdge {
+  """The item at the end of the edge"""
+  node: HotelCity
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+input HotelFacilitiesInput {
+  """Show only hotels having airport shuttle as a service."""
+  airportShuttle: Boolean
+
+  """Show only hotels having family rooms."""
+  familyRooms: Boolean
+
+  """Show only hotels having facilities for disabled."""
+  facilitiesForDisabled: Boolean
+
+  """Show only hotels having fitness room."""
+  fitnessCenter: Boolean
+
+  """Show only hotels having any parking."""
+  parking: Boolean
+
+  """Show only hotels having free parking."""
+  freeParking: Boolean
+
+  """Show only hotels having valet parking."""
+  valetParking: Boolean
+
+  """Show only hotels having indoor swimming pool."""
+  indoorPool: Boolean
+
+  """Show only hotels having pets allowed."""
+  petsAllowed: Boolean
+
+  """Show only hotels having spa."""
+  spa: Boolean
+
+  """Show only hotels having wifi."""
+  wifi: Boolean
+}
+
+type HotelFacility {
+  """The ID of an object"""
+  id: ID!
+
+  """Name of the facility."""
+  name: String
+}
+
+"""A connection to a list of items."""
+type HotelFacilityConnection {
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """A list of edges."""
+  edges: [HotelFacilityEdge]
+}
+
+"""An edge in a connection."""
+type HotelFacilityEdge {
+  """The item at the end of the edge"""
+  node: HotelFacility
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type HotelPhoto {
+  """The ID of an object"""
+  id: ID!
+  lowResUrl: String
+  highResUrl: String
+  thumbnailUrl: String
+}
+
+"""A connection to a list of items."""
+type HotelPhotoConnection {
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """A list of edges."""
+  edges: [HotelPhotoEdge]
+}
+
+"""An edge in a connection."""
+type HotelPhotoEdge {
+  """The item at the end of the edge"""
+  node: HotelPhoto
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type HotelRating {
+  """Star rating is always in the interval 1-5 inclusive."""
+  stars: Int
+
+  """Name of the stars category."""
+  categoryName: String
+}
+
+type HotelReview {
+  """The review score of the hotel, in the range 1-10 inclusive."""
+  score: Float
+
+  """The review score of the hotel in words."""
+  description: String
+
+  """The number of reviews of the hotel."""
+  count: Int
+}
+
+type HotelRoom {
+  """The ID of an object"""
+  id: ID!
+
+  """Type of the hotel room."""
+  type: String
+  maxPersons: Int
+  bedding: [HotelRoomBedding]
+
+  """All available photos of the hotel room."""
+  photos(after: String, first: Int, before: String, last: Int): HotelRoomPhotoConnection
+  description: HotelRoomDescription
+
+  """The hotelroom size in square meters"""
+  roomSize: Float
+}
+
+type HotelRoomAvailability {
+  """The ID of an object"""
+  id: ID!
+
+  """Original block ID used to open Booking.com page."""
+  originalId: String @deprecated(reason: "Use \"id\" field whenever possible.")
+
+  """Base price for the room in this configuration."""
+  minimalPrice: Price
+  incrementalPrice: [Price]
+
+  """Is the hotelroom refundable"""
+  isRefundable: Boolean
+
+  """Is breakfast included in the hotelroom"""
+  isBreakfastIncluded: Boolean
+  room: HotelRoom
+}
+
+type HotelRoomBedding {
+  type: String
+  amount: Int
+}
+
+"""A connection to a list of items."""
+type HotelRoomConnection {
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """A list of edges."""
+  edges: [HotelRoomEdge]
+}
+
+type HotelRoomDescription {
+  title: String
+  text: String
+}
+
+"""An edge in a connection."""
+type HotelRoomEdge {
+  """The item at the end of the edge"""
+  node: HotelRoom
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+"""A connection to a list of items."""
+type HotelRoomPhotoConnection {
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """A list of edges."""
+  edges: [HotelRoomPhotoEdge]
+}
+
+"""An edge in a connection."""
+type HotelRoomPhotoEdge {
+  """The item at the end of the edge"""
+  node: HotelPhoto
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+input HotelsFilterInput {
+  """List of hotels classes (stars) you want to filter."""
+  starsRating: [Int]
+
+  """
+  Show only hotels having minimum total price lower than or equal to this value.
+  """
+  minPrice: Float
+
+  """
+  Show only hotels having minimum total price higher than or equal to this value.
+  """
+  maxPrice: Float
+
+  """Show only hotels having specified hotel facilities"""
+  hotelFacilities: HotelFacilitiesInput
+
+  """
+  Show only hotels having minimum review score higher than or equal to this value. Score must be between 1 and 10.
+  """
+  minScore: Int
+
+  """Show only hotels having free cancellation."""
+  freeCancellation: Boolean
+}
+
+"""You must provide lat/lng combination OR city ID."""
+input HotelsSearchInput {
+  """Latitude in float format (example: 45.4654)."""
+  latitude: Float
+
+  """Longitude in float format (example: 9.1859)."""
+  longitude: Float
+
+  """Opaque ID of the city."""
+  cityId: String
+  checkin: Date!
+  checkout: Date!
+  language: Language
+  roomsConfiguration: [RoomsConfiguration!]!
+}
+
+type Identity {
+  """The ID of an object"""
+  id: ID!
+
+  """Internal database ID."""
+  databaseId: String @deprecated(reason: "Use id field instead.")
+
+  """Raw input by user, use "login" if you want normalized email."""
+  email: String
+  emailVerified: Boolean
+  firstName: String
+  lastName: String
+
+  """
+  Concatenation of first and last name with fallback to the login field.
+  """
+  fullName: String
+
+  """Use this in API calls. It is email but normalized."""
+  login: String
+}
+
+type InsuranceService {
+  """Returns passengers allowed to buy a travel insurance."""
+  passengers: [Passenger]
+}
+
+"""The possible insurance type values"""
+enum InsuranceType {
+  NONE
+  TRAVEL_BASIC
+  TRAVEL_PLUS
+}
+
+scalar IP
+
+"""Use "Accept-Language" HTTP header to specify locale."""
+enum Language {
+  ar @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  bg @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ca @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  cs @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  da @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  de @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  el @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  en @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  engb @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  enus @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  es @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  esar @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  et @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  fi @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  fr @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  he @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  hr @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  hu @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  id @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  is @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  it @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ja @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ko @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  lt @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  lv @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ms @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  nl @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  no @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  pl @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  pt @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ptbr @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ptpt @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ro @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ru @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  sk @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  sl @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  sr @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  sv @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  th @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  tl @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  tr @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  uk @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  vi @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  zh @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  zhcn @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  zhtw @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+}
+
+type LeaveForAirportTimelineEvent implements TimelineEvent {
+  """Time of appearance in the timeline."""
+  timestamp: DateTime
+}
+
+"""
+Leg is the operation of an aircraft from one scheduled departure station to its next scheduled arrival station.
+"""
+type Leg {
+  """The ID of an object"""
+  id: ID!
+  airline: Airline
+  arrival: RouteStop
+  departure: RouteStop
+
+  """Leg duration in minutes."""
+  duration: Int
+  flightNumber: Int
+  recheckRequired: Boolean
+
+  """Determines whether Leg is related to return flight."""
+  isReturn: Boolean
+  type: VehicleType
+
+  """Information about who covers the transfer"""
+  guarantee: CoveredBy
+}
+
+"""
+DEPRECATED - use "Accept-Language" HTTP header to specify locale.Language tag in the format of the RFC 5646.
+"""
+enum Locale {
+  bg_BG @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ca_ES @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  cs_CZ @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  da_DK @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  de_DE @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  de_AT @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  de_CH @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  el_GR @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  en_GB @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  en_AU @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  en_CA @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  en_EE @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  en_HK @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  en_IN @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  en_IE @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  en_MY @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  en_NZ @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  en_SG @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  en_ZA @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  en_PH @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  en_US @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  es_ES @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  es_AR @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  es_CL @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  es_CO @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  es_EC @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  es_PE @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  es_MX @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  fr_FR @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  fr_BE @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  fr_CA @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  hr_HR @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  id_ID @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  is_IS @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  it_IT @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ja_JP @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  lt_LT @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  he_IL @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  hu_HU @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  nl_NL @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  no_NO @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  nb_NO @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  nn_NO @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  pl_PL @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  pt_PT @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  pt_BR @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ro_RO @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ru_RU @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ru_BY @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ru_KZ @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  sk_SK @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  sr_RS @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  fi_FI @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  sv_SE @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  th_TH @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  tr_TR @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  vi_VN @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  uk_UA @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ar_SA @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ar_BH @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ar_JO @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ar_KW @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ar_OM @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ar_QA @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ar_AE @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  ko_KR @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  zh_CN @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+  zh_TW @deprecated(reason: "Use \"Accept-Language\" HTTP header to specify locale.")
+}
+
+type Location {
+  """The ID of an object"""
+  id: ID!
+
+  """3-letter IATA code of airport or internal city code."""
+  locationId: String
+  name: String
+  slug: String
+  timezone: String
+  location: Coordinates
+
+  """Airport, city or country."""
+  type: String
+  city: LocationArea
+  subdivision: LocationArea
+  country: LocationArea
+  countryFlagURL: String
+  isActive: Boolean
+  stationsCount: Int
+  airportsCount: Int
+  alternativeNames: [String]
+  autonomousTerritory: LocationArea
+  rank: Int
+}
+
+type LocationArea {
+  locationId: String
+  name: String
+  slug: String
+}
+
+"""A connection to a list of items."""
+type LocationConnection {
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """A list of edges."""
+  edges: [LocationEdge]
+}
+
+"""An edge in a connection."""
+type LocationEdge {
+  """The item at the end of the edge"""
+  node: Location
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+input LocationInput {
+  location: String
+  radius: RadiusInput
+}
+
+input LocationsOptionsInput {
+  """
+  DEPRECATED - use "Accept-Language" HTTP header to specify locale.Language tag in the format of the RFC 5646.
+  """
+  locale: Locale
+
+  """Desired location type the response should only include."""
+  locationType: LocationType
+}
+
+"""Type of location"""
+enum LocationType {
+  airport
+  autonomous_territory
+  city
+  country
+  station
+  subdivision
+}
+
+type LoungeService {
+  relevantAirports: [LoungeServiceRelevantAirports]
+}
+
+type LoungeServiceRelevantAirports {
+  whitelabelURL: String
+  location: Location
+}
+
+"""An object with an ID"""
+interface Node {
+  """The id of the object."""
+  id: ID!
+}
+
+"""Information about pagination in a connection."""
+type PageInfo {
+  """When paginating forwards, are there more items?"""
+  hasNextPage: Boolean!
+
+  """When paginating backwards, are there more items?"""
+  hasPreviousPage: Boolean!
+
+  """When paginating backwards, the cursor to continue."""
+  startCursor: String
+
+  """When paginating forwards, the cursor to continue."""
+  endCursor: String
+}
+
+type ParkingService {
+  whitelabelURL: String
+}
+
+"""The passengers associated with the booking"""
+type Passenger {
+  databaseId: Int
+  firstname: String
+  lastname: String
+  fullName: String
+  insuranceType: InsuranceType
+  title: String
+  birthday: DateTime
+  nationality: String
+  travelDocument: TravelDocument
+
+  """Visa information for the passenger"""
+  visaInformation: Visa
+}
+
+input PassengersInput {
+  adults: Int!
+  infants: Int
+}
+
+type PaymentConfirmedTimelineEvent implements TimelineEvent {
+  """Time of appearance in the timeline."""
+  timestamp: DateTime
+}
+
+type Price {
+  amount: Float
+
+  """An ISO-4217 currency code."""
+  currency: String
+}
+
+input RadiusInput {
+  """Latitude of the center of the circle."""
+  lat: Float!
+
+  """Longitude of the center of the circle."""
+  lng: Float!
+
+  """Distance in kilometers."""
+  radius: Int!
+}
+
+type ResetPasswordResponse {
+  success: Boolean
+}
+
+input RoomsChildrenConfiguration {
+  age: Int
+}
+
+input RoomsConfiguration {
+  adultsCount: Int!
+  children: [RoomsChildrenConfiguration]
+}
+
+"""Root Mutation."""
+type RootMutation {
+  addFAQArticleComment(
+    """ID of FAQ article to receive vote."""
+    id: ID!
+
+    """Value indicating the comment type."""
+    type: FAQCommentType!
+
+    """Comment text"""
+    comment: String!
+  ): FAQArticle
+  login(email: String!, password: String!): User
+  resetPassword(email: String!): ResetPasswordResponse
+}
+
+"""Root Query"""
+type RootQuery {
+  """
+  Search for all available hotels in one location. It's necessary to send
+  checkin and checkout dates as well as rooms configuration to get availability info.
+  """
+  allAvailableHotels(search: HotelsSearchInput!, filter: HotelsFilterInput, options: AvailableHotelOptionsInput, after: String, first: Int = 50, before: String, last: Int): HotelAvailabilityConnection
+
+  """Search for your flight bookings."""
+  allBookings(
+    """
+    Allows to filter only future bookings or only past bookings but not both.
+    You can skip this argument to fetch all bookings (future and past).
+    """
+    only: AllBookingsOnlyEnum
+    after: String
+    first: Int
+    before: String
+    last: Int
+  ): BookingConnection @deprecated(reason: "Use \"customerBookings\" query instead.")
+
+  """
+  All dynamic packages. Dynamic package is a combination of return flight and
+  accommodation in hotel. It saves time and also the price should be better then
+  buying flight and acommodation separately.
+  """
+  allDynamicPackages(
+    simpleSearch: DynamicPackagesSimpleSearchInput!
+
+    """An ISO-4217 currency code."""
+    currency: Currency
+    after: String
+    first: Int
+    before: String
+    last: Int
+  ): DynamicPackageConnection
+
+  """Retrieve list of FAQ categories."""
+  allFAQCategories(
+    """
+    Language in which the titles and perexes of FAQ categories are returned.
+    """
+    language: Language
+    after: String
+    first: Int
+    before: String
+    last: Int
+  ): FAQCategoryConnection
+
+  """Search for Frequently Asked Questions"""
+  allFAQs(
+    """Keyword for the search"""
+    search: String
+
+    """Language in which the search is made and the answer is returned"""
+    language: Language
+    after: String
+    first: Int
+    before: String
+    last: Int
+  ): FAQArticleConnection
+
+  """Search for scheduled flights."""
+  allFlights(search: FlightsSearchInput!, options: FlightsOptionsInput, filters: FlightsFiltersInput, after: String, first: Int, before: String, last: Int): FlightConnection
+
+  """
+  Search for airports, cities, countries. You can search by location name,
+  radius on the map or rectangle on the map. If you do not specify one of these
+  search inputs then the alphabetical dump of all locations is returned.
+  """
+  allLocations(
+    """Search location by name."""
+    search: String
+
+    """Search location by radius."""
+    radius: RadiusInput
+
+    """Search location by area."""
+    area: AreaInput
+
+    """Combination of slug and radius. e.g. bratislava-slovakia-169km"""
+    slugRadius: String
+    options: LocationsOptionsInput
+    after: String
+    first: Int
+    before: String
+    last: Int
+  ): LocationConnection
+
+  """All locations in certain location. For example all airports in London"""
+  allSubLocations(
+    """Location ID"""
+    id: String!
+    options: LocationsOptionsInput
+    after: String
+    first: Int
+    before: String
+    last: Int
+  ): LocationConnection
+
+  """
+  Search for single available hotel by its ID. It's necessary to send checkin
+  and checkout dates as well as rooms configuration to get availability info.
+  """
+  availableHotel(search: AvailableHotelSearchInput!, options: AvailableHotelOptionsInput): HotelAvailability
+
+  """Find booking by its id or databaseId."""
+  booking(
+    """
+    Database ID (human readable ID) of the booking. You should use "node" query if you want to use opaque ID.
+    """
+    id: ID!
+  ): Booking @deprecated(reason: "Use \"node\" query instead.")
+
+  """Currencies used on Kiwi.com frontend"""
+  currencies(after: String, first: Int, before: String, last: Int): CurrencyDetailConnection
+
+  """Detail of a currency as used on Kiwi.com frontend"""
+  currency(
+    """The currency code used on Kiwi.com frontend"""
+    code: String!
+  ): CurrencyDetail
+
+  """Current user information."""
+  currentUser: Identity
+
+  """Search for your flight bookings."""
+  customerBookings(
+    """
+    Allows to filter only future bookings or only past bookings but not both.
+    You can skip this argument to fetch all bookings (future and past).
+    """
+    only: CustomerBookingsOnlyEnum
+    after: String
+    first: Int
+    before: String
+    last: Int
+  ): BookingInterfaceConnection
+
+  """Retrieve single FAQ article."""
+  FAQArticle(
+    """ID of FAQ article to retrieve."""
+    id: ID!
+
+    """Language in which the text of the article is returned."""
+    language: Language
+  ): FAQArticle
+
+  """Retrieve specific FAQ category and its subcategories & articles."""
+  FAQCategory(
+    """ID of FAQ category to retrieve."""
+    id: ID!
+
+    """
+    Language in which the titles and perexes of FAQ categories are returned.
+    """
+    language: Language
+  ): FAQCategory
+
+  """Geography info by an IP address"""
+  geoIP(ip: IP!): GeoIP
+
+  """Single hotel by ID."""
+  hotel(id: ID!, language: Language): Hotel
+
+  """
+  All cities where you can find the hotels. This query can be used for
+  suggestions of relevant cities (search for example). Cities can be filtered
+  by prefix with typo tolerance. Items are sorted by prefix matching and a
+  number of hotels (desc). When the prefix is omitted top cities are returned.
+  """
+  hotelCities(
+    """First few letters."""
+    prefix: String
+
+    """Search for cities around a given position."""
+    position: CoordinatesInput
+    after: String
+    first: Int
+    before: String
+    last: Int
+  ): HotelCityConnection
+
+  """Single location by ID."""
+  location(
+    id: String!
+
+    """
+    DEPRECATED - use "Accept-Language" HTTP header to specify locale.Language tag in the format of the RFC 5646.
+    """
+    locale: Locale
+  ): Location
+
+  """
+  Find most relevant booking relative to current time. That is a booking with
+  the smallest difference between current time and arrival time of one of its
+  Legs. If no future booking is found, then the nearest past booking is returned.
+  """
+  nearestBooking: BookingInterface
+
+  """Get the timeline for your booking."""
+  bookingTimeline(
+    """Only Booking id can be used as ID."""
+    id: ID!
+  ): BookingTimeline
+
+  """Fetches an object given its ID"""
+  node(
+    """The ID of an object"""
+    id: ID!
+  ): Node
+}
+
+type RouteStop {
+  airport: Location
+  time: DateTime
+  localTime: DateTime
+
+  """City id of the route stop"""
+  cityId: String
+}
+
+type Services {
+  """Travel insurance - returns "null" if not available."""
+  insurance: InsuranceService
+}
+
+input StopoversInput {
+  """Minimum number of hours of stopover duration."""
+  from: Int
+
+  """Maximum number of hours of stopover duration."""
+  to: Int
+}
+
+interface TimelineEvent {
+  """Time of appearance in the timeline."""
+  timestamp: DateTime
+}
+
+type TransportFromAirportTimelineEvent implements TimelineEvent {
+  """Time of appearance in the timeline."""
+  timestamp: DateTime
+}
+
+"""Travel document info"""
+type TravelDocument {
+  idNumber: String
+  expiration: DateTime
+}
+
+"""Single travel from origin to destination, with possible stopovers."""
+type Trip {
+  departure: RouteStop
+  arrival: RouteStop
+
+  """Trip duration in minutes."""
+  duration: Int
+  legs: [Leg]
+}
+
+type User {
+  token: String
+  isLoggedIn: Boolean
+  identity: Identity
+}
+
+enum VehicleType {
+  BUS
+  TRAIN
+  AIRCRAFT
+}
+
+"""Visa information for passenger"""
+type Visa {
+  """Countries where visa is required"""
+  requiredIn: [Location]
+
+  """Countries where visa might be required"""
+  warningIn: [Location]
+
+  """Countries where visa is not required"""
+  okIn: [Location]
+}
+
+type WhitelabeledServices {
+  lounge: LoungeService
+  parking: ParkingService
+  carRental: CarRentalService
+}
